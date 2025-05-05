@@ -2,107 +2,105 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Title
-st.title("Insecticide Usage for Pests")
+# Page title
+st.set_page_config(page_title="Insecticide Usage", layout="wide")
+st.title("🧪 Insecticide Usage for Pests")
 
-# Single column layout
-col1 = st.columns([1])[0]
+# Upload Excel file
+uploaded_file = st.file_uploader("📄 Upload Insecticide Excel File", type=["xlsx"])
 
-with col1:
-    # File upload
-    uploaded_file = st.file_uploader("Upload Insecticide Excel File", type=["xlsx"])
+if uploaded_file:
+    try:
+        df = pd.read_excel(uploaded_file)
+        df.columns = df.columns.str.strip()
 
-    if uploaded_file:
-        try:
-            # Read Excel file
-            df = pd.read_excel(uploaded_file)
-            df.columns = df.columns.str.strip()  # Clean column names
+        required_columns = {'PEST', 'INSECTICIDE', 'Formulation', 'CROP'}
+        if required_columns.issubset(set(df.columns)):
 
-            # Check required columns
-            if {'PEST', 'INSECTICIDE', 'Formulation', 'CROP'}.issubset(df.columns):
-                # Show All toggle
+            # Optional CSS to center content
+            st.markdown("""
+                <style>
+                .block-container {
+                    padding-top: 2rem;
+                    padding-bottom: 2rem;
+                }
+                </style>
+            """, unsafe_allow_html=True)
+
+            # Pest input and show-all checkbox in a row
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                pest_input = st.text_input("🔍 Enter Pest Name (partial or full):")
+            with col2:
                 show_all = st.checkbox("Show All Data")
 
-                # Pest input (only if not showing all)
-                pest_input = ""
-                if not show_all:
-                    pest_input = st.text_input("Enter Pest Name (partial or full):")
-
-                # Filter pest
+            if show_all or pest_input:
                 if show_all:
                     filtered_df = df.copy()
-                elif pest_input:
-                    filtered_df = df[df['PEST'].str.contains(pest_input, case=False, na=False)]
                 else:
-                    filtered_df = pd.DataFrame()
+                    filtered_df = df[df['PEST'].str.contains(pest_input, case=False, na=False)]
 
                 if not filtered_df.empty:
-                    # Crop filter
-                    crop_options = filtered_df['CROP'].dropna().unique().tolist()
-                    selected_crop = st.selectbox("Filter by Crop (Optional)", ["All"] + crop_options)
+                    # Dropdown filters for Crop and Insecticide
+                    crop_options = sorted(filtered_df['CROP'].dropna().unique().tolist())
+                    insecticide_options = sorted(filtered_df['INSECTICIDE'].dropna().unique().tolist())
 
+                    col3, col4 = st.columns(2)
+                    with col3:
+                        selected_crop = st.selectbox("🌱 Filter by Crop", ["All"] + crop_options)
+                    with col4:
+                        selected_insecticide = st.selectbox("🧴 Filter by Insecticide", ["All"] + insecticide_options)
+
+                    # Apply crop and insecticide filter
                     if selected_crop != "All":
                         filtered_df = filtered_df[filtered_df['CROP'] == selected_crop]
-
-                    # Insecticide filter
-                    insecticide_options = filtered_df['INSECTICIDE'].dropna().unique().tolist()
-                    selected_insecticide = st.selectbox("Filter by Insecticide (Optional)", ["All"] + insecticide_options)
-
                     if selected_insecticide != "All":
                         filtered_df = filtered_df[filtered_df['INSECTICIDE'] == selected_insecticide]
 
                     if not filtered_df.empty:
-                        st.write("### Filtered Results")
-                        st.dataframe(filtered_df[['INSECTICIDE', 'Formulation', 'CROP']])
+                        st.write(f"### 🐛 Filtered Results ({len(filtered_df)} records)")
+                        st.dataframe(filtered_df[['CROP', 'PEST', 'INSECTICIDE', 'Formulation']])
 
-                        # Insecticide selection for detailed info
-                        final_insecticide_options = filtered_df['INSECTICIDE'].dropna().unique()
-                        insecticide_selection = st.selectbox("Select Insecticide for Details", final_insecticide_options)
+                        # Insecticide selection section
+                        final_insecticide_options = filtered_df['INSECTICIDE'].unique().tolist()
 
-                        if insecticide_selection:
-                            selected_data = filtered_df[filtered_df['INSECTICIDE'] == insecticide_selection]
-                            formulation = selected_data['Formulation'].iloc[0]
-                            display_pest = selected_data['PEST'].iloc[0] if not show_all else "Various"
+                        with st.container():
+                            insecticide_selection = st.selectbox("🔽 Select Insecticide for Details", final_insecticide_options)
+                            if insecticide_selection:
+                                selected_data = filtered_df[filtered_df['INSECTICIDE'] == insecticide_selection]
+                                formulation = selected_data['Formulation'].iloc[0]
+                                st.markdown(f"""
+                                ### 🧾 Insecticide Information
+                                - **Insecticide**: `{insecticide_selection}`
+                                - **Pest**: `{pest_input if not show_all else 'All'}`
+                                - **Formulation**: `{formulation}`
+                                """)
 
-                            st.markdown(
-                                f"### Insecticide Information\n\n"
-                                f"- **Insecticide**: `{insecticide_selection}`\n"
-                                f"- **Pest**: `{display_pest}`\n"
-                                f"- **Formulation**: `{formulation}`"
-                            )
-
-                        # Bar chart
-                        plot_df = filtered_df.dropna(subset=['INSECTICIDE', 'Formulation'])
-                        plot_df['INSECTICIDE'] = plot_df['INSECTICIDE'].astype(str)
-                        plot_df['Formulation'] = plot_df['Formulation'].astype(str)
-
-                        insecticide_counts = plot_df[['INSECTICIDE', 'Formulation']].value_counts().reset_index(name='Count')
+                        # Bar Chart
+                        insecticide_counts = filtered_df[['INSECTICIDE', 'Formulation']].value_counts().reset_index(name='Count')
                         insecticide_counts['Label'] = insecticide_counts['INSECTICIDE'] + " (" + insecticide_counts['Formulation'] + ")"
 
                         fig_height = max(6, 0.5 * len(insecticide_counts))
                         fig, ax = plt.subplots(figsize=(12, fig_height))
                         insecticide_counts.sort_values("Count").plot(
-                            kind='barh', x='Label', y='Count', ax=ax, color='skyblue', edgecolor='black'
+                            kind='barh', x='Label', y='Count',
+                            ax=ax, color='skyblue', edgecolor='black'
                         )
-
-                        title = "Insecticide Frequency"
-                        if not show_all and pest_input:
-                            title += f" for Pests Matching: {pest_input}"
-                        ax.set_title(title, fontsize=14)
-                        ax.set_xlabel("Count")
+                        ax.set_title(f"Insecticides Used (Pest: {pest_input if not show_all else 'All'})", fontsize=14)
+                        ax.set_xlabel("Usage Count")
                         ax.set_ylabel("Insecticide (Formulation)")
                         st.pyplot(fig)
-
                     else:
-                        st.warning("No data after applying filters.")
+                        st.warning("No matching records found after filter.")
                 else:
-                    if not show_all:
-                        st.info("Please enter a pest name to search.")
-                    else:
-                        st.warning("No data available.")
+                    st.warning("No matching pests found.")
             else:
-                st.error("Excel file must contain 'PEST', 'INSECTICIDE', 'Formulation', and 'CROP' columns.")
-        except Exception as e:
-            st.error(f"An error occurred while processing the file: {e}")
-    else:
-        st.info("Please upload an Excel file to begin.")
+                st.info("Please enter a pest name or enable 'Show All Data'.")
+
+        else:
+            st.error("Excel file must contain these columns: 'PEST', 'INSECTICIDE', 'Formulation', 'CROP'.")
+
+    except Exception as e:
+        st.error(f"An error occurred while processing the file: {e}")
+else:
+    st.info("Upload an Excel file to begin.")
