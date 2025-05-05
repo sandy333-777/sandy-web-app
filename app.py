@@ -53,7 +53,7 @@ with col1:
 
                     if not filtered_df.empty:
                         st.write("### Filtered Results")
-                        st.dataframe(filtered_df[['INSECTICIDE', 'Formulation', 'CROP']])
+                        st.dataframe(filtered_df[['PEST', 'INSECTICIDE', 'Formulation', 'CROP']])
 
                         # Insecticide selection for detailed info
                         final_insecticide_options = filtered_df['INSECTICIDE'].dropna().unique()
