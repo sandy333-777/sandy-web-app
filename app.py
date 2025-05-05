@@ -38,20 +38,22 @@ with col1:
 
                 if not filtered_df.empty:
                     # Crop filter
-                    crop_input = st.text_input("Filter by Crop (partial match, optional):", "")
-                    if crop_input:
-                          filtered_df = filtered_df[filtered_df['CROP'].str.contains(crop_input, case=False, na=False)]
+                    crop_options = filtered_df['CROP'].dropna().unique().tolist()
+                    selected_crop = st.selectbox("Filter by Crop (Optional)", ["All"] + crop_options)
 
+                    if selected_crop != "All":
+                        filtered_df = filtered_df[filtered_df['CROP'] == selected_crop]
 
                     # Insecticide filter
-                    insecticide_input = st.text_input("Filter by Insecticide (partial match, optional):", "")
-                    if insecticide_input:
-                        filtered_df = filtered_df[filtered_df['INSECTICIDE'].str.contains(insecticide_input, case=False, na=False)]
+                    insecticide_options = filtered_df['INSECTICIDE'].dropna().unique().tolist()
+                    selected_insecticide = st.selectbox("Filter by Insecticide (Optional)", ["All"] + insecticide_options)
 
+                    if selected_insecticide != "All":
+                        filtered_df = filtered_df[filtered_df['INSECTICIDE'] == selected_insecticide]
 
                     if not filtered_df.empty:
                         st.write("### Filtered Results")
-                        st.dataframe(filtered_df[['PEST', 'INSECTICIDE', 'Formulation', 'CROP']])
+                        st.dataframe(filtered_df[['INSECTICIDE', 'Formulation', 'CROP']])
 
                         # Insecticide selection for detailed info
                         final_insecticide_options = filtered_df['INSECTICIDE'].dropna().unique()
