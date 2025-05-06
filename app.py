@@ -15,8 +15,11 @@ with col1:
     if uploaded_file:
         try:
             # Read Excel file
+            
+
             df = pd.read_excel(uploaded_file)
             df.columns = df.columns.str.strip()
+            df['CROP'] = df['CROP'].astype(str)
             df['Formulation'] = df['Formulation'].astype(str)  # Fix type issues
 
             # Check required columns
