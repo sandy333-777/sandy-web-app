@@ -22,19 +22,22 @@ with col1:
             if {'PEST', 'INSECTICIDE', 'Formulation', 'CROP'}.issubset(df.columns):
                 # Show All toggle
                 show_all = st.checkbox("Show All Data")
-
-                # Pest input (only if not showing all)
-                pest_input = ""
-                if not show_all:
-                    pest_input = st.text_input("Enter Pest Name (partial or full):")
-
-                # Filter pest
+                
+                # Filtering logic
                 if show_all:
-                    filtered_df = df.copy()
-                elif pest_input:
-                    filtered_df = df[df['PEST'].str.contains(pest_input, case=False, na=False)]
+                    search_input = st.text_input("Search (crop, pest, insecticide, etc.):").strip()
+                
+                    if search_input:
+                        mask = df.apply(lambda row: row.astype(str).str.contains(search_input, case=False, na=False)).any(axis=1)
+                        filtered_df = df[mask]
+                    else:
+                        filtered_df = df.copy()
                 else:
-                    filtered_df = pd.DataFrame()
+                    pest_input = st.text_input("Enter Pest Name (partial or full):").strip()
+                    if pest_input:
+                        filtered_df = df[df['PEST'].str.contains(pest_input, case=False, na=False)]
+                    else:
+                        filtered_df = pd.DataFrame()
 
                 if not filtered_df.empty:
                     # Crop filter
@@ -53,7 +56,7 @@ with col1:
 
                     if not filtered_df.empty:
                         st.write("### Filtered Results")
-                        st.dataframe(filtered_df[['INSECTICIDE', 'Formulation', 'CROP']])
+                        st.dataframe(filtered_df[['PEST', 'INSECTICIDE', 'Formulation', 'CROP']])
 
                         # Insecticide selection for detailed info
                         final_insecticide_options = filtered_df['INSECTICIDE'].dropna().unique()
