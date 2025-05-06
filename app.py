@@ -21,8 +21,7 @@ with col1:
             df.columns = df.columns.str.strip()
             df['CROP'] = df['CROP'].astype(str)
             df['Formulation'] = df['Formulation'].astype(str)  # Fix type issues
-            for col in df.select_dtypes(include=['object']).columns:
-                df[col] = df[col].astype(str).str.encode('ascii', errors='ignore').str.decode('ascii')
+            
 
             # Check required columns
             if {'PEST', 'INSECTICIDE', 'Formulation', 'CROP'}.issubset(df.columns):
