@@ -29,7 +29,7 @@ with col1:
                     pest_input = st.text_input("Enter Pest Name (partial or full):")
 
                 # Filter pest
-                 if show_all:
+                if show_all:
                      
                     
                      universal_filter = st.text_input("Universal Filter (search across all fields):")
