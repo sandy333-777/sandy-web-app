@@ -18,9 +18,6 @@ with col1:
             df = pd.read_excel(uploaded_file)
             df.columns = df.columns.str.strip()  # Clean column names
 
-            # Convert Formulation column to string to prevent ArrowTypeError
-            df['Formulation'] = df['Formulation'].astype(str)
-
             # Check required columns
             if {'PEST', 'INSECTICIDE', 'Formulation', 'CROP'}.issubset(df.columns):
                 # Show All toggle
@@ -56,7 +53,7 @@ with col1:
 
                     if not filtered_df.empty:
                         st.write("### Filtered Results")
-                        st.dataframe(filtered_df[['PEST', 'INSECTICIDE', 'Formulation', 'CROP']])
+                        st.dataframe(filtered_df[['INSECTICIDE', 'Formulation', 'CROP']])
 
                         # Insecticide selection for detailed info
                         final_insecticide_options = filtered_df['INSECTICIDE'].dropna().unique()
@@ -69,9 +66,9 @@ with col1:
 
                             st.markdown(
                                 f"### Insecticide Information\n\n"
-                                f"- **Insecticide**: `{insecticide_selection}`\n"
-                                f"- **Pest**: `{display_pest}`\n"
-                                f"- **Formulation**: `{formulation}`"
+                                f"- **Insecticide**: {insecticide_selection}\n"
+                                f"- **Pest**: {display_pest}\n"
+                                f"- **Formulation**: {formulation}"
                             )
 
                         # Bar chart
@@ -80,7 +77,7 @@ with col1:
                         plot_df['Formulation'] = plot_df['Formulation'].astype(str)
 
                         insecticide_counts = plot_df[['INSECTICIDE', 'Formulation']].value_counts().reset_index(name='Count')
-                        insecticide_counts['Label'] = insecticide_counts['INSECTICIDE'].astype(str) + " (" + insecticide_counts['Formulation'].astype(str) + ")"
+                        insecticide_counts['Label'] = insecticide_counts['INSECTICIDE'] + " (" + insecticide_counts['Formulation'] + ")"
 
                         fig_height = max(6, 0.5 * len(insecticide_counts))
                         fig, ax = plt.subplots(figsize=(12, fig_height))
