@@ -30,28 +30,29 @@ with col1:
 
                 # Filter pest
                  if show_all:
-                    # Universal filter
-                    universal_filter = st.text_input("Universal Filter (search across all fields):")
+                     
                     
-                    # Crop filter
-                    selected_crop = st.text_input("Filter by Crop (partial match):")
+                     universal_filter = st.text_input("Universal Filter (search across all fields):")
                     
-                    # Pesticide filter
-                    selected_insecticide = st.text_input("Filter by Pesticide (partial match):")
+                     # Crop filter
+                     selected_crop = st.text_input("Filter by Crop (partial match):")
+                    
+                     # Pesticide filter
+                     selected_insecticide = st.text_input("Filter by Pesticide (partial match):")
                 
-                    filtered_df = df.copy()
+                     filtered_df = df.copy()
                 
-                    if universal_filter:
-                        # Keep rows where any column contains the universal_filter string
-                        filtered_df = filtered_df[
-                            filtered_df.apply(lambda row: row.astype(str).str.contains(universal_filter, case=False, na=False).any(), axis=1)
-                        ]
+                     if universal_filter:
+                         # Keep rows where any column contains the universal_filter string
+                         filtered_df = filtered_df[
+                             filtered_df.apply(lambda row: row.astype(str).str.contains(universal_filter, case=False, na=False).any(), axis=1)
+                         ]
                 
-                    if selected_crop:
-                        filtered_df = filtered_df[filtered_df['CROP'].str.contains(selected_crop, case=False, na=False)]
+                     if selected_crop:
+                         filtered_df = filtered_df[filtered_df['CROP'].str.contains(selected_crop, case=False, na=False)]
                 
-                    if selected_insecticide:
-                        filtered_df = filtered_df[filtered_df['INSECTICIDE'].str.contains(selected_insecticide, case=False, na=False)]
+                     if selected_insecticide:
+                         filtered_df = filtered_df[filtered_df['INSECTICIDE'].str.contains(selected_insecticide, case=False, na=False)]
 
 
                     
